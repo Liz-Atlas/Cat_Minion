@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cat Minion</title>
+<meta name="description" content="Cat Minion – Einmal falsch geatmet, schon enterbt. Ein 24-Stunden-Überlebensspiel als Personal zweier Senioren-Katzen.">
+<style>
+  :root{
+    --bg:#141218; --card:#1f1b26; --card2:#29243300; --line:#3a3346;
+    --text:#ece6f2; --muted:#a79fb3; --pink:#f3a9c6; --gold:#e8c27a;
+    --green:#8fd3a8; --red:#ef7b7b; --blue:#8ab4f0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.5;min-height:100vh;
+    background-image:radial-gradient(circle at 20% 0%,#2a1f33 0,transparent 45%),radial-gradient(circle at 100% 100%,#1d2430 0,transparent 40%)}
+  .wrap{max-width:620px;margin:0 auto;padding:16px 16px 48px}
+  header{text-align:center;padding:12px 0 8px}
+  h1{font-size:2rem;letter-spacing:.04em}
+  h1 span{color:var(--pink)}
+  .tag{color:var(--muted);font-style:italic;font-size:.95rem}
+
+  .cockpit{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin:14px 0;position:sticky;top:8px;z-index:5;box-shadow:0 8px 24px #0006}
+  .bar{margin-bottom:10px}
+  .bar-head{display:flex;justify-content:space-between;font-size:.88rem;margin-bottom:4px}
+  .track{height:10px;background:#0d0b10;border-radius:99px;overflow:hidden}
+  .fill{height:100%;border-radius:99px;transition:width .6s ease,background .6s}
+  .slipper{display:flex;justify-content:space-between;font-size:.88rem;padding-top:4px;border-top:1px dashed var(--line);margin-top:4px}
+  .slipper b{color:var(--gold)}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px;animation:in .35s ease}
+  @keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .meta{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+  .time{font-family:ui-monospace,Menlo,monospace;color:var(--gold);font-size:.95rem}
+  .cats{display:flex;gap:6px}
+  .chip{font-size:.78rem;padding:3px 9px;border-radius:99px;border:1px solid var(--line);color:var(--muted)}
+  h2{font-size:1.3rem;margin-bottom:10px}
+  .situation{color:#d8d0e2;margin-bottom:18px}
+  .boss{color:var(--red);font-weight:700;font-size:.8rem;letter-spacing:.12em}
+
+  .opts{display:flex;flex-direction:column;gap:10px}
+  .opt{all:unset;cursor:pointer;display:flex;gap:12px;align-items:flex-start;padding:14px;border-radius:14px;border:1px solid var(--line);background:#17141d;transition:border-color .2s,transform .1s}
+  .opt:hover{border-color:var(--pink)}
+  .opt:active{transform:scale(.99)}
+  .opt .k{flex:0 0 28px;height:28px;border-radius:50%;display:grid;place-items:center;background:#2c2537;color:var(--pink);font-weight:700}
+
+  .pic{position:relative;width:100%;aspect-ratio:4/3;border-radius:14px;overflow:hidden;display:grid;place-items:center;margin-bottom:14px;border:1px solid var(--line)}
+  .pic .emo{font-size:5.5rem;filter:drop-shadow(0 6px 12px #0008)}
+  .pic img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .pic.win{background:linear-gradient(135deg,#3a2438,#2a2033)}
+  .pic.fail{background:linear-gradient(135deg,#3a1f24,#1f1b26)}
+  .pic.ok{background:linear-gradient(135deg,#22303a,#1f1b26)}
+  .caption{position:absolute;left:0;right:0;bottom:0;padding:10px 12px;background:linear-gradient(transparent,#000c);font-size:.85rem;color:#fff;text-align:left}
+  .verdict{font-size:1.25rem;font-weight:800;margin-bottom:6px}
+  .verdict.win{color:var(--green)} .verdict.fail{color:var(--red)} .verdict.ok{color:var(--blue)}
+  .deltas{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .d{font-size:.82rem;padding:3px 9px;border-radius:99px;background:#17141d;border:1px solid var(--line)}
+  .d.plus{color:var(--green)} .d.minus{color:var(--red)}
+  .report{border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:14px}
+  .report h3{font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);padding:10px 14px;background:#17141d}
+  .row{padding:10px 14px;border-top:1px solid var(--line)}
+  .row small{display:block;color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.08em}
+  .fact{background:#1a2420;color:#cfe8da}
+  .whim{background:#2b1f2a;border:1px dashed var(--pink);border-radius:12px;padding:10px 14px;margin-bottom:14px;font-size:.9rem}
+  .btn{all:unset;cursor:pointer;display:block;text-align:center;width:100%;padding:14px;border-radius:14px;background:var(--pink);color:#1a1020;font-weight:800;box-sizing:border-box}
+  .btn:hover{filter:brightness(1.08)}
+  .btn.ghost{background:transparent;color:var(--pink);border:1px solid var(--pink);margin-top:10px}
+  .intro p{margin-bottom:12px;color:#d8d0e2}
+  .profiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0}
+  .prof{background:#17141d;border:1px solid var(--line);border-radius:14px;padding:12px;font-size:.85rem}
+  .prof b{display:block;margin-bottom:4px}
+  .log{list-style:none;margin:14px 0}
+  .log li{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:.9rem}
+  footer{text-align:center;color:var(--muted);font-size:.8rem;margin-top:24px}
+  @media (max-width:420px){.profiles{grid-template-columns:1fr}h1{font-size:1.7rem}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>CAT <span>MINION</span></h1>
+    <p class="tag">Einmal falsch geatmet, schon enterbt.</p>
+  </header>
+
+  <section class="cockpit" id="cockpit" hidden>
+    <div class="bar">
+      <div class="bar-head"><span>👑 Pinkey-Würde</span><span id="pv">50 %</span></div>
+      <div class="track"><div class="fill" id="pb"></div></div>
+    </div>
+    <div class="bar">
+      <div class="bar-head"><span>🧶 Puma-Sicherheit</span><span id="uv">50 %</span></div>
+      <div class="track"><div class="fill" id="ub"></div></div>
+    </div>
+    <div class="slipper"><span>🧦 Hausschuhe</span><b id="sv">Trocken &amp; geduldet</b></div>
+  </section>
+
+  <main id="stage"></main>
+  <footer>Ein Fun-Projekt. Keine Katze wurde beim Entwickeln gezwungen. Der Minion schon.</footer>
+</div>
+
+<script>
+/* ============ BILDER ============
+   Lege echte Bilder in /img mit diesen Namen ab.
+   Fehlt eine Datei, wird automatisch das Emoji angezeigt. */
+const IMAGES = {
+  pfote:     { src: "img/pfote.jpg",     emo: "🐾", pos: "45% 30%", caption: "Gnade gewährt. Die Pfote wird gerade gereinigt – vermutlich, weil du sie berührt hast." },
+  blick:     { src: "img/blick.jpg",     emo: "😾", pos: "center 25%", caption: "Der Blick vom Holzstuhl. Deine Existenz wird geprüft." },
+  pantoffel: { src: "img/pantoffel.jpg", emo: "🩴", pos: "center 60%", caption: "Tatort Badezimmer. Schwanz hoch. Keine Reue." },
+  handschuh: { src: "img/handschuh.jpg", emo: "🧤", caption: "Ein Lederhandschuh. Ehemals." }
+};
+
+const SLIPPER = ["Trocken & geduldet","Leicht verdächtig","Feucht & unter Beobachtung","Klitschnass & enterbt"];
+
+const WHIMS = [
+  "Du hast alles richtig gemacht. Aber dein Gesicht hat ihr heute Vormittag nicht gefallen.",
+  "Du hast in die falsche Richtung geatmet.",
+  "Grundlos. Das ist der Grund.",
+  "Sie hat dich gesehen. Das reicht.",
+  "Dein Pulli riecht nach dem Nachbarshund. Behauptet sie."
+];
+
+/* ============ LEVEL ============
+   type: win | ok | fail
+   d: { pinkey, puma, slipper } */
+const LEVELS = [
+{
+  time:"06:30", title:"Das Wasser-Paradoxon", cats:["pinkey","puma"],
+  text:"Frühschicht-Routine. Der Wassernapf drinnen steht wie immer direkt neben dem Futter – trotzdem trinkt keiner draus. Pinkeys Draußen-Schüssel hat inzwischen einen glitschigen Film. Puma schaut zu, bereit, alles nachzumachen.",
+  opts:[
+    { t:"Frisches Wasser neben das Futter, die Draußen-Schüssel ab in den Geschirrspüler. Effizient.",
+      type:"fail", img:"blick", d:{pinkey:-20, puma:0},
+      thought:"Frisch, sauber, alles an einem Ort. Mehr Service geht nicht.",
+      cat:"Du hast ein Buffet neben der Biotonne eröffnet. Und meine Schüssel riecht jetzt nach Alpenzitrone.",
+      fact:"Viele Katzen trinken lieber getrennt vom Futterplatz – gängige Erklärung ist ein alter Instinkt, Wasser neben Beute als verunreinigt einzustufen. Duftstoffe vom Spültab riechen Katzen deutlich intensiver als wir." },
+    { t:"Draußen-Schüssel nur mit klarem Wasser ausspülen. Sie mag den Film ja so.",
+      type:"fail", emo:"🦠", caption:"Die Katze ist zufrieden. Genau das ist das Problem.", d:{pinkey:+5, puma:-10, slipper:0},
+      thought:"Wenn's ihr schmeckt, lass ich die Patina halt drauf.",
+      cat:"Perfekt. So schmeckt Freiheit.",
+      fact:"Der Schleimfilm im Napf ist ein Biofilm aus Bakterien – genährt von Speichel und allem, was draußen reinfliegt. Mit Wasser allein geht der nicht weg. Bei Seniorenkatzen erst recht: Napf richtig reinigen, auch wenn die Chefin protestiert." },
+    { t:"Geschirrspüler, danach kalt nachspülen und trockenreiben. Drinnen eine breite, flache Schale – weit weg vom Futter.",
+      type:"win", img:"pfote", d:{pinkey:+15, puma:+10},
+      thought:"Sauber muss sein. Aber ich räume die Spuren meiner Tat weg.",
+      cat:"Hm. Riecht nach nichts. Steht nicht neben der Leiche. Akzeptabel.",
+      fact:"Schnurrhaar-Stress ist real: Schmale, tiefe Näpfe stoßen an die Tasthaare. Breite, flache Schalen sind angenehmer. Spültab-Geruch haftet vor allem feucht-warm – kalt nachspülen und abtrocknen hilft." }
+  ]
+},
+{
+  time:"08:15", title:"Die Badezimmertür", cats:["puma"],
+  text:"Zähneputzen. Aus Gewohnheit machst du die Tür zu. Nach 1,4 Sekunden: Kratzen. Dann ein Maunzen, als würde draußen die Welt untergehen. Puma. Pinkey sitzt drei Meter weiter im Flur und schaut schweigend zu.",
+  opts:[
+    { t:"Sofort aufreißen, Puma hochheben, tausendmal mit hoher Stimme entschuldigen, als Schal mit ins Bad.",
+      type:"fail", emo:"📈", caption:"Gelernt: Panik + Lärm = Jackpot.", d:{puma:-15, pinkey:-5},
+      thought:"Der Arme! Er hat Angst, ich tröste ihn.",
+      cat:"Schreien funktioniert. Ab morgen schreie ich lauter. Und früher.",
+      fact:"Wer genau im lautesten Moment öffnet und dann mit Aufmerksamkeit überschüttet, belohnt das Drama. Bei Katzen mit starker Bindung an einen Menschen verstärkt das die Trennungsangst eher." },
+    { t:"Durch die Tür rufen: „Ich bin gleich fertig, Puma, du hältst das zwei Minuten aus!“",
+      type:"fail", emo:"🗣️", caption:"Sie antwortet! Weitermachen!", d:{puma:-10},
+      thought:"Ich beruhige ihn mit meiner Stimme.",
+      cat:"Sie ist DA und antwortet. Wenn ich lauter kratze, geht das Holzding vielleicht auf.",
+      fact:"Katzen verstehen keine Zeitangaben – aber sie lernen schnell, welches Verhalten eine Reaktion auslöst. Deine Stimme hinter der Tür ist eine Reaktion." },
+    { t:"Kurz warten, bis er gerade still ist. Dann die Tür beiläufig einen Spalt öffnen und das Drama komplett ignorieren.",
+      type:"win", img:"pfote", d:{puma:+15, pinkey:+5},
+      thought:"Kein Drama machen. Einfach langweilig sein.",
+      cat:"Oh. Tür offen. Nichts passiert. Alles sicher. Ich leg mich auf die Badematte.",
+      fact:"Ruhe belohnen, nicht Lärm. Und ein beiläufiger Empfang signalisiert: Hier ist nichts Gefährliches passiert. Pinkey im Flur wertet dein unaufgeregtes Verhalten übrigens als Würde." }
+  ]
+},
+{
+  time:"11:00", title:"Endgegner: Tierarzt", cats:["pinkey","puma"], boss:"MINI-BOSS",
+  text:"Jahreskontrolle für beide. Pinkey hasst die Box. Puma ist dein Kuschel-Schal – zu Hause darfst du ihm sogar ins Maul schauen. Der Tierarzt zieht sich gerade die Handschuhe an. Wie gehst du das an?",
+  opts:[
+    { t:"Puma zuerst – der ist ja ein Schmuser. Tierarzt soll ihn ruhig im Nacken fixieren, du brauchst die Hände fürs Handy.",
+      type:"fail", img:"handschuh", d:{puma:-30, slipper:+1},
+      thought:"Er liebt Menschen. Was soll schon passieren?",
+      cat:"FREMDER. FESTGEHALTEN. NACKEN. → Stammhirn übernimmt. Liebe ist offline.",
+      fact:"Der Nackengriff löst nur bei Kitten in den ersten Wochen eine Tragestarre aus. Bei erwachsenen Katzen gilt er in der katzenfreundlichen Tiermedizin als überholt. Und selbst vom eigenen Menschen ausgeführt, ist er für die Katze ein Bruch: Der sichere Hafen wird plötzlich zum Zwang. Liebe hebelt Instinkt nicht aus." },
+    { t:"Pinkey schnell von oben in die Box drücken, dann ab. Beim Arzt beide ganz dem Profi überlassen.",
+      type:"fail", img:"blick", d:{pinkey:-20, puma:-15},
+      thought:"Schnell durch, je kürzer desto besser.",
+      cat:"Pinkey: Panik. Blase gibt nach. Puma: Wo ist mein Mensch? Wer hält mich? → Kampf.",
+      fact:"Pinkey reagiert auf Zwang mit „Freeze“: Angst-Urinieren, dann Erstarren. Puma reagiert mit „Fight“, weil sein Sicherheitsanker (du) fehlt. Gleicher Auslöser, zwei völlig verschiedene Systeme." },
+    { t:"Box steht schon Tage vorher offen mit Handtuch drin. Saugfähige Unterlage für Pinkey einkalkuliert. Puma hältst du selbst – Handtuch statt Nackengriff.",
+      type:"win", img:"pfote", d:{pinkey:+10, puma:+15},
+      thought:"Ich kann die Angst nicht abschalten, aber ich kann den Zwang klein halten.",
+      cat:"Pinkey: Ich hasse alles, aber ich halte still. Puma: Mein Mensch hält mich. Ich überlebe das. Knapp.",
+      fact:"Eine Box, die als normales Möbelstück herumsteht, verliert ihren Schrecken. Ein Handtuch-Wickel gibt Halt ohne Schmerz. Und der Besitzer als Halter ist für stark gebundene Katzen oft der Unterschied zwischen Fauchen und Beißen." }
+  ]
+},
+{
+  time:"15:00", title:"Die Terrassen-Falle", cats:["pinkey"],
+  text:"Pinkey döst auf ihrem Stuhl in der Sonne, Rücken zu dir. Augen halb zu, nur die äußerste Schwanzspitze zuckt alle paar Sekunden. Sie ist taub. Du kommst mit Kaffee raus und denkst: Ein bisschen Liebe geht immer.",
+  opts:[
+    { t:"Leise von hinten anschleichen, um sie nicht zu stören, und sanft über den Kopf streicheln.",
+      type:"fail", img:"blick", d:{pinkey:-25},
+      thought:"Ganz leise, damit sie nicht aufwacht.",
+      cat:"EINE HAND AUS DEM NICHTS. Herzinfarkt. Du bist enterbt. Rückwirkend.",
+      fact:"Eine taube Katze hört dich nicht kommen – „leise“ ist für sie dasselbe wie „laut“. Berührung ohne Vorwarnung reißt sie aus dem Halbschlaf. Taube Katzen orientieren sich an Sicht und Vibration." },
+    { t:"Im Bogen ins Sichtfeld laufen, warten bis sie dich ansieht, dann einen gekrümmten Zeigefinger auf Nasenhöhe hinhalten. Abwarten.",
+      type:"win", img:"pfote", d:{pinkey:+20},
+      thought:"Sie entscheidet. Ich biete nur an.",
+      cat:"Ah. Der Knecht kennt das Protokoll. *reibt gnädig die Wange am Fingerknöchel*",
+      fact:"Ein gekrümmter Finger auf Nasenhöhe ähnelt einer Katzennase – so begrüßen sich befreundete Katzen. Die Katze behält die volle Kontrolle. Bonus: Die zuckende Schwanzspitze war ein Hinweis auf leichte Gereiztheit. Gut, dass du gewartet hast." },
+    { t:"Vor sie hinstellen, ihr tief und lange in die grünen Augen schauen, langsam mit der flachen Hand von oben Richtung Kopf.",
+      type:"fail", img:"blick", d:{pinkey:-20},
+      thought:"Sie soll genau sehen, was ich vorhabe.",
+      cat:"Starren? Eine Pranke von oben? Das ist eine Kampfansage, Personal.",
+      fact:"Langes direktes Anstarren gilt unter Katzen als Drohung. Eine große Hand von oben wirkt wie ein Greifvogel. Langsames Blinzeln wäre das freundliche Gegenstück." }
+  ]
+},
+{
+  time:"20:00", title:"Die Couch-Geiselnahme", cats:["puma"], whimBoost:true,
+  text:"Puma liegt schnurrend als Pelzschal um deinen Hals. Vier Kilo, warm, zufrieden. Dein Kaffee steht 30 cm zu weit links. Pinkey schläft am anderen Ende der Couch.",
+  opts:[
+    { t:"Kurz aufstehen, Puma sanft absetzen, Kaffee holen, zurück.",
+      type:"fail", emo:"😿", caption:"Als du zurückkommst, sitzt er auf deinem Platz. Beleidigt.", d:{puma:-10},
+      thought:"Sind doch nur fünf Sekunden.",
+      cat:"Verlassen. Für eine BOHNE. Ich merke mir das.",
+      fact:"Für stark gebundene Katzen ist selbst eine kurze Unterbrechung eine Zurückweisung. Nicht dramatisch – aber gezählt wird alles." },
+    { t:"Liegenbleiben. Verdursten ist ein ehrenvoller Tod.",
+      type:"win", img:"pfote", d:{puma:+15},
+      thought:"Ich bin ein Möbelstück. Ein glückliches.",
+      cat:"Optimale Wärmequelle. Herzschlag ruhig. Mensch kooperiert. 10/10.",
+      fact:"Katzen schnurren grob im Bereich von 25 bis 150 Hertz. Dass Schnurren auch Menschen beruhigt, beschreiben viele Halter – die Couch-Geiselnahme ist also therapeutisch. Für beide." },
+    { t:"Den Kaffee vorsichtig mit dem Fuß heranangeln.",
+      type:"fail", img:"blick", d:{pinkey:-15, puma:-5},
+      thought:"Puma bleibt liegen, ich krieg meinen Kaffee. Win-win.",
+      cat:"Pinkey: Die Couch BEBT. Ich bin taub, nicht gefühllos. *Blick*",
+      fact:"Taube Katzen reagieren oft besonders stark auf Vibrationen – das ist ihr Ersatz-Alarm. Deine Fuß-Akrobatik war für Pinkey ein Erdbeben." }
+  ]
+},
+{
+  time:"00:15", title:"Heimkehr nach der Spätschicht", cats:["puma"], boss:"BOSS-LEVEL",
+  text:"Schicht bis Mitternacht, du bist fertig mit der Welt. Puma wartet wie immer an der Tür. Du musst extrem dringend aufs WC – wo auch die Katzenkisten stehen. Tür bleibt offen. Puma springt dir auf den Schoß. Du setzt ihn ab. Er setzt erneut zum Sprung an.",
+  opts:[
+    { t:"Scharf: „RAUS!“",
+      type:"fail", img:"pantoffel", d:{puma:-35, slipper:+3},
+      thought:"Ich hatte einen Scheißtag. Einmal Ruhe, bitte.",
+      cat:"Den ganzen Abend gewartet. Endlich da. Und dann VERSTOSSEN. Im Kistenzimmer. Ich markiere mein Eigentum. Schwanz hoch.",
+      fact:"Bei Katzen mit starker Bindung kann eine harsche Zurückweisung nach langem Warten in Stress- oder Protest-Markieren umschlagen. Dass er danach mit steil erhobenem Schwanz abzieht, ist keine Reue. Das ist Stolz." },
+    { t:"Ihn ruhig auf dem Schoß lassen, kurz kraulen, nach dem Geschäft wortlos absetzen – Begrüßungsritual danach auf der Couch nachholen.",
+      type:"win", img:"pfote", d:{puma:+20},
+      thought:"Zwei Minuten Klettverschluss halte ich auch noch aus.",
+      cat:"Begrüßung erfolgt. Muster intakt. Hausschuhe werden verschont. Vorerst.",
+      fact:"Muster = Sicherheit. Das Begrüßungsritual ist für Puma der Beweis, dass die Welt noch steht. Wer es nur verschiebt statt abbricht, bricht kein Muster." },
+    { t:"Mit letzter Kraft die Tür zuziehen. Er jammert draußen, du beeilst dich, danach ausgiebige Begrüßung.",
+      type:"ok", emo:"🚪", caption:"Er jammert. Deine Pantoffeln überleben.", d:{puma:+5, pinkey:+5},
+      thought:"Eine letzte Bastion der Würde gönne ich mir.",
+      cat:"Tür zu. Furchtbar. Aber sie kommt raus und bleibt bei mir. Ich verzeihe. Diesmal.",
+      fact:"Auch beim größten Klettverschluss-Kater darf das Personal Grenzen haben – entscheidend ist, dass danach nicht Zurückweisung, sondern das gewohnte Ritual folgt. Und dass das Kistenrevier schnell wieder frei ist." }
+  ]
+}
+];
+
+/* ============ MINION-PRÜFUNG: Allgemeines Katzenwissen ============
+   Pro Runde werden 10 zufällige Fragen gezogen. ok:true = richtige Antwort. */
+const QUIZ = [
+{ q:"Deine Katze schnurrt. Was heißt das?",
+  opts:[{t:"Sie ist glücklich. Immer. Ausnahmslos."},{t:"Meistens Wohlbefinden – aber Katzen schnurren auch bei Stress, Schmerz oder beim Tierarzt.",ok:true},{t:"Sie lädt gerade ihre Batterie."}],
+  cat:"Ich schnurre, wann ich will. Auch wenn ich dich gerade nicht leiden kann.",
+  fact:"Schnurren ist auch Selbstberuhigung. Viele Katzen schnurren auf dem Behandlungstisch oder bei Schmerzen. Kontext lesen, nicht nur Ton." },
+{ q:"Ist ein Schälchen Milch ein gutes Leckerli?",
+  opts:[{t:"Klar, Katzen lieben Milch."},{t:"Nein – die meisten erwachsenen Katzen vertragen Laktose schlecht.",ok:true},{t:"Nur warme Milch, kalte macht Bauchweh."}],
+  cat:"Ich trinke sie. Du putzt danach. Deal.",
+  fact:"Nach der Säugezeit nimmt das Enzym Laktase stark ab. Folge ist oft Durchfall. Wasser bleibt das Getränk der Wahl." },
+{ q:"Deine Katze schaut dich an und blinzelt ganz langsam. Was tust du?",
+  opts:[{t:"Zurückstarren, bis sie wegschaut. Dominanz!"},{t:"Langsam zurückblinzeln.",ok:true},{t:"Augentropfen holen."}],
+  cat:"Endlich. Das Personal spricht meine Sprache.",
+  fact:"Langsames Blinzeln gilt als freundliches Signal – eine Art Katzen-Lächeln. Studien zeigen: Katzen reagieren auf Menschen, die langsam zurückblinzeln, zugewandter." },
+{ q:"Katze rollt sich auf den Rücken und zeigt dir den Bauch.",
+  opts:[{t:"Bauch kraulen – eindeutige Einladung."},{t:"Vertrauenssignal. Anschauen, genießen, Hände weg.",ok:true},{t:"Sie will sofort Futter."}],
+  cat:"Ich zeige dir meinen Bauch. Ich habe nicht gesagt, dass du ihn anfassen darfst.",
+  fact:"Der Bauch ist die verletzlichste Stelle. Ihn zu zeigen heißt „Ich fühle mich sicher“, nicht „Fass an“. Viele Katzen antworten auf Bauchkraulen mit Klammern, Treten, Beißen." },
+{ q:"Katzen landen immer auf den Füßen. Ist das gekippte Fenster im 3. Stock also kein Problem?",
+  opts:[{t:"Stimmt, die drehen sich ja."},{t:"Falsch – Stürze verletzen trotzdem oft schwer, und Kippfenster sind eine eigene Falle.",ok:true},{t:"Nur bei Katzen über fünf Kilo gefährlich."}],
+  cat:"Ich bin ein Raubtier. Ich bin auch ein Idiot, wenn eine Fliege vorbeifliegt.",
+  fact:"Der Stellreflex dreht den Körper, schützt aber nicht vor Brüchen – Tierärzte sprechen vom High-Rise-Syndrom. Kippfenster können Katzen einklemmen. Schutzgitter helfen." },
+{ q:"Wie viele Katzenklos empfehlen Fachleute für zwei Katzen?",
+  opts:[{t:"Eins reicht, die teilen schon."},{t:"Drei – Faustregel: Anzahl Katzen plus eins.",ok:true},{t:"Zwei, aber direkt nebeneinander."}],
+  cat:"Ich teile mein Klo nicht. Ich teile auch dich nicht.",
+  fact:"Faustregel: Katzen plus eins, an verschiedenen Orten. In echten Wohnungen scheitert das oft am Platz – dann zumindest sauber und gut erreichbar halten." },
+{ q:"Katze kommt mit senkrecht erhobenem Schwanz auf dich zu, die Spitze leicht geknickt.",
+  opts:[{t:"Freundliche Begrüßung.",ok:true},{t:"Angriff steht unmittelbar bevor."},{t:"Sie muss dringend aufs Klo."}],
+  cat:"Hallo. Ich komme in friedlicher Absicht. Meistens.",
+  fact:"Der hochgereckte Schwanz ist ein Begrüßungs- und Freundlichkeitssignal. Dass derselbe Schwanz beim Pantoffel-Tatort steht, ist Ironie, keine Biologie." },
+{ q:"Katze liegt auf deinem Schoß. Du streichelst. Ihr Schwanz schlägt immer stärker hin und her.",
+  opts:[{t:"Sie freut sich, wie ein Hund."},{t:"Aufhören – das ist zunehmende Gereiztheit.",ok:true},{t:"Schneller streicheln, dann beruhigt sie sich."}],
+  cat:"Ich habe dich dreimal gewarnt. Jetzt beiße ich. Du warst informiert.",
+  fact:"Peitschender Schwanz heißt Erregung oder Ärger. Oft kommen zuckendes Rückenfell und gedrehte Ohren dazu. Wer weiterstreichelt, lernt den Streicheln-dann-Beißen-Effekt kennen." },
+{ q:"Du bekommst einen Strauß Lilien geschenkt.",
+  opts:[{t:"Auf den Tisch, Katzen fressen keine Blumen."},{t:"Raus aus der Wohnung – Lilien sind für Katzen hochgiftig, schon die Pollen.",ok:true},{t:"Hoch aufs Regal reicht."}],
+  cat:"Ich wollte nur dran riechen. Dann war Staub auf meiner Nase. Dann hab ich mich geputzt.",
+  fact:"Echte Lilien können bei Katzen akutes Nierenversagen auslösen – es genügt, Pollen vom Fell abzuschlecken. Bei Verdacht sofort zum Tierarzt." },
+{ q:"Kann man eine Katze vegetarisch ernähren?",
+  opts:[{t:"Ja, mit genug Gemüse."},{t:"Nein – Katzen sind obligate Fleischfresser.",ok:true},{t:"Nur im Sommer."}],
+  cat:"Ich bin ein Raubtier. Brokkoli ist eine Beleidigung.",
+  fact:"Katzen brauchen u. a. Taurin aus tierischen Quellen. Ein Mangel kann zu Herz- und Augenschäden führen." },
+{ q:"Warum ist deiner Katze dein Kuchen völlig egal?",
+  opts:[{t:"Sie ist auf Diät."},{t:"Katzen können süß nicht schmecken.",ok:true},{t:"Sie wartet nur, bis du wegschaust."}],
+  cat:"Kuchen? Ich will die Sahne. Wegen dem Fett. Nicht wegen dir.",
+  fact:"Das Gen für den Süß-Rezeptor ist bei Katzen defekt. Wenn sie an der Sahne schleckt, geht es ums Fett, nicht um den Zucker." },
+{ q:"Die Schnurrhaare sehen zerzaust aus. Kürzen?",
+  opts:[{t:"Ja, für die Optik."},{t:"Nein – das sind Tastorgane.",ok:true},{t:"Nur auf einer Seite, für die Symmetrie."}],
+  cat:"Fass meine Antennen an und ich fasse deine Pantoffeln an.",
+  fact:"Schnurrhaare sind tief verankert und mit Nerven verbunden. Sie helfen beim Abschätzen von Durchgängen und bei Orientierung im Dunkeln. Abschneiden verunsichert die Katze." },
+{ q:"Deine Katze drückt ihren Kopf gegen dein Gesicht.",
+  opts:[{t:"Sie markiert dich mit ihrem Duft – du gehörst dazu.",ok:true},{t:"Sie will dich wegschieben."},{t:"Sie hat Kopfschmerzen."}],
+  cat:"Du bist jetzt offiziell mein Inventar.",
+  fact:"Beim Köpfchengeben verteilt die Katze Duft aus Drüsen an Wangen und Stirn. Du wirst Teil der Gruppe – oder Möbel, je nach Sichtweise." },
+{ q:"Katze tritt rhythmisch mit den Pfoten auf deinem Bauch herum.",
+  opts:[{t:"Milchtritt – Wohlfühlverhalten aus der Kittenzeit.",ok:true},{t:"Sie testet, ob du gar bist."},{t:"Sie bereitet einen Angriff vor."}],
+  cat:"Ich knete dich. Krallen inklusive. Du darfst dich geehrt fühlen.",
+  fact:"Kitten treteln beim Saugen. Erwachsene Katzen behalten das, wenn sie sich sicher und entspannt fühlen." },
+{ q:"Deine Katze wirkt krank. Darf sie eine Schmerztablette aus deiner Hausapotheke?",
+  opts:[{t:"Ein Viertel Paracetamol geht schon."},{t:"Nein – viele Humanmedikamente, besonders Paracetamol, sind für Katzen giftig.",ok:true},{t:"Ja, wenn man sie in Leberwurst versteckt."}],
+  cat:"Ich bin kein kleiner Mensch. Ich bin eine Katze. Mit eigener Leber.",
+  fact:"Katzen fehlen Leberenzyme, um Paracetamol abzubauen – schon kleine Mengen können tödlich sein. Schmerzmittel nur vom Tierarzt." },
+{ q:"Wie alt ist eine 15-jährige Katze ungefähr in Menschenjahren?",
+  opts:[{t:"Etwa 105 – Katzenjahre mal sieben."},{t:"Etwa 76.",ok:true},{t:"Etwa 45."}],
+  cat:"Ich bin eine Seniorin. Das heißt nicht, dass ich langsam bin. Es heißt, dass ich keine Geduld mehr habe.",
+  fact:"Die Mal-sieben-Regel stimmt nicht. Katzen altern in den ersten zwei Jahren schnell (2 Jahre ≈ 24 Menschenjahre), danach grob vier Menschenjahre pro Katzenjahr." },
+{ q:"Warum trinken viele Katzen zu wenig?",
+  opts:[{t:"Sie sind schlicht faul."},{t:"Ihre Vorfahren deckten viel Flüssigkeit über Beute – das Durstgefühl ist eher schwach.",ok:true},{t:"Wasser ist ihnen zu nass."}],
+  cat:"Ich trinke. Aber nicht aus DEM Napf.",
+  fact:"Nassfutter, mehrere Wasserstellen weg vom Futter und Trinkbrunnen helfen. Ausgerechnet Regenwasser im Untersetzer ist oft der Favorit." },
+{ q:"Wie viel schläft eine erwachsene Katze am Tag?",
+  opts:[{t:"Acht Stunden, wie du."},{t:"Etwa 12 bis 16 Stunden.",ok:true},{t:"Gar nicht. Sie beobachtet dich."}],
+  cat:"Ich schlafe nicht. Ich lade auf, um dich um 5 Uhr wecken zu können.",
+  fact:"Raubtier-Energiehaushalt: kurze, intensive Jagd, viel Ruhe. Senioren schlafen oft noch mehr." }
+];
+
+const QUIZ_LEN = 10;
+const QZ = { list:[], i:0, score:0, log:[] };
+function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+function picHTML(im, cls){
+  return `<div class="pic ${cls}"><span class="emo">${im.emo}</span>${im.src ? `<img src="${im.src}" alt="" style="object-position:${im.pos||"center"}" onerror="this.remove()">` : ""}<div class="caption">${esc(im.caption||"")}</div></div>`;
+}
+
+function quizStart(){
+  $("cockpit").hidden = true;
+  QZ.list = shuffle(QUIZ.slice()).slice(0, QUIZ_LEN).map(x => ({...x, opts: shuffle(x.opts.slice())}));
+  QZ.i = 0; QZ.score = 0; QZ.log = [];
+  quizQuestion();
+}
+
+function quizQuestion(){
+  const x = QZ.list[QZ.i];
+  stage.innerHTML = `
+  <div class="card">
+    <div class="meta"><span class="time">📚 Minion-Prüfung · ${QZ.i+1}/${QZ.list.length}</span><span class="chip">🐾 ${QZ.score} Gnade</span></div>
+    <h2>${esc(x.q)}</h2>
+    <div class="opts">
+      ${x.opts.map((o,n)=>`<button class="opt" onclick="quizAnswer(${n})"><span class="k">${"ABC"[n]}</span><span>${esc(o.t)}</span></button>`).join("")}
+    </div>
+  </div>`;
+  top();
+}
+
+function quizAnswer(n){
+  const x = QZ.list[QZ.i], o = x.opts[n], ok = !!o.ok;
+  if (ok) QZ.score++;
+  QZ.log.push({ title:x.q, type: ok ? "win" : "fail" });
+  const right = x.opts.find(p => p.ok);
+  const whim = ok && Math.random() < 0.1 ? WHIMS[Math.floor(Math.random()*WHIMS.length)] : null;
+  const last = QZ.i >= QZ.list.length-1;
+  stage.innerHTML = `
+  <div class="card">
+    ${picHTML(ok ? IMAGES.pfote : IMAGES.blick, ok ? "win" : "fail")}
+    <div class="verdict ${ok?"win":"fail"}">${ok ? "Richtig. Gnade gewährt. 🐾" : "Falsch. Der Blick."}</div>
+    ${whim ? `<div class="whim">🎲 <b>Willkür-Faktor:</b> ${whim} (zählt trotzdem.)</div>` : ""}
+    <div class="report">
+      <h3>Minion-Report</h3>
+      ${ok ? "" : `<div class="row"><small>Richtig wäre</small>${esc(right.t)}</div>`}
+      <div class="row"><small>Was die Katze denkt</small>${esc(x.cat)}</div>
+      <div class="row fact"><small>Katzen-Fakt</small>${esc(x.fact)}</div>
+    </div>
+    <button class="btn" onclick="${last ? "quizFinish()" : "QZ.i++;quizQuestion()"}">${last ? "Prüfung abgeben" : "Nächste Frage"}</button>
+  </div>`;
+  top();
+}
+
+function quizFinish(){
+  const s = QZ.score, n = QZ.list.length;
+  let title, text, im, cls;
+  if (s >= 9){ title="Diplom-Minion"; text="Du weißt mehr über Katzen als die meisten Katzen über dich wissen wollen."; im=IMAGES.pfote; cls="win"; }
+  else if (s >= 6){ title="Minion mit Grundkenntnissen"; text="Solide. Die Katze ist nicht beeindruckt, aber sie ist nie beeindruckt."; im=IMAGES.blick; cls="ok"; }
+  else { title="Dosenöffner, ungelernt"; text="Du darfst weiter Futter servieren. Mehr Verantwortung bekommst du vorerst nicht."; im=IMAGES.pantoffel; cls="fail"; }
+  stage.innerHTML = `
+  <div class="card">
+    ${picHTML(im, cls)}
+    <div class="verdict ${cls}">${title}</div>
+    <p class="situation">${text}</p>
+    <div class="deltas"><span class="d">🐾 ${s} von ${n} richtig</span></div>
+    <button class="btn" onclick="quizStart()">Neue Prüfung (neue Fragen)</button>
+    <button class="btn ghost" onclick="intro()">Zum Start</button>
+  </div>`;
+  top();
+}
+
+/* ============ ENGINE ============ */
+const S = { pinkey:50, puma:50, slipper:0, i:0, log:[] };
+const $ = id => document.getElementById(id);
+const stage = $("stage");
+const clamp = v => Math.max(0, Math.min(100, v));
+const esc = s => s.replace(/&/g,"&amp;").replace(/</g,"&lt;");
+
+function color(v){ return v>65 ? "var(--green)" : v>35 ? "var(--gold)" : "var(--red)"; }
+function updateCockpit(){
+  $("pv").textContent = S.pinkey+" %"; $("uv").textContent = S.puma+" %";
+  $("pb").style.width = S.pinkey+"%"; $("pb").style.background = color(S.pinkey);
+  $("ub").style.width = S.puma+"%";   $("ub").style.background = color(S.puma);
+  $("sv").textContent = SLIPPER[S.slipper];
+}
+function chip(c){ return c==="pinkey" ? '<span class="chip">👑 Pinkey</span>' : '<span class="chip">🧶 Puma</span>'; }
+function top(){ window.scrollTo({top:0,behavior:"smooth"}); }
+
+function intro(){
+  $("cockpit").hidden = true;
+  stage.innerHTML = `
+  <div class="card intro">
+    <h2>Willkommen, Minion.</h2>
+    <p>Du bist 24 Stunden lang Personal zweier Senioren-Katzen. Dein Ziel: den Tag überstehen, ohne Existenzberechtigung oder trockene Hausschuhe zu verlieren.</p>
+    <div class="profiles">
+      <div class="prof"><b>👑 Pinkey</b>Die autonome Monarchin. Seniorin, taub, silbergrau getigert. Nähe nur nach ihren Regeln. Verzeiht keine Fehler.</div>
+      <div class="prof"><b>🧶 Puma</b>Der Klettverschluss mit Reißzähnen. Extrem anhänglich. Wirkt, als würde er alles verzeihen. Tut er nicht.</div>
+    </div>
+    <p><b>Die drei Gesetze:</b><br>1. Muster = Sicherheit. 2. Zwang = Explosion. 3. Manchmal verlierst du trotzdem.</p>
+    <button class="btn" onclick="start()">🕒 Ein Tag als Minion</button>
+    <button class="btn ghost" onclick="quizStart()">📚 Minion-Prüfung: Allgemeines Katzenwissen</button>
+  </div>`;
+}
+
+function start(){
+  Object.assign(S,{pinkey:50,puma:50,slipper:0,i:0,log:[]});
+  $("cockpit").hidden = false; updateCockpit(); level();
+}
+
+function level(){
+  const L = LEVELS[S.i];
+  stage.innerHTML = `
+  <div class="card">
+    <div class="meta"><span class="time">⏰ ${L.time} · ${S.i+1}/${LEVELS.length}</span><div class="cats">${L.cats.map(chip).join("")}</div></div>
+    ${L.boss ? `<div class="boss">${L.boss}</div>` : ""}
+    <h2>${L.title}</h2>
+    <p class="situation">${L.text}</p>
+    <div class="opts">
+      ${L.opts.map((o,n)=>`<button class="opt" onclick="choose(${n})"><span class="k">${"ABC"[n]}</span><span>${esc(o.t)}</span></button>`).join("")}
+    </div>
+  </div>`;
+  top();
+}
+
+function choose(n){
+  const L = LEVELS[S.i], o = L.opts[n];
+  const d = { pinkey:o.d.pinkey||0, puma:o.d.puma||0, slipper:o.d.slipper||0 };
+
+  // Willkür-Faktor
+  let whim = null;
+  if (o.type!=="fail" && Math.random() < (L.whimBoost ? 0.5 : 0.15)) {
+    whim = WHIMS[Math.floor(Math.random()*WHIMS.length)];
+    d.pinkey -= 2;
+  }
+  // Puma-Fails kosten Hausschuh-Status
+  if (o.type==="fail" && L.cats.includes("puma") && d.puma<0 && !d.slipper) d.slipper = 1;
+
+  S.pinkey = clamp(S.pinkey + d.pinkey);
+  S.puma   = clamp(S.puma + d.puma);
+  S.slipper= Math.min(SLIPPER.length-1, S.slipper + d.slipper);
+  S.log.push({title:L.title, type:o.type});
+  updateCockpit();
+
+  const im = o.img ? IMAGES[o.img] : { emo:o.emo, caption:o.caption };
+  const verdictTxt = { win:"Gnade gewährt. 🐾", ok:"Überlebt. Knapp.", fail:"Fehler im Muster." }[o.type];
+  const dl = [];
+  if (d.pinkey) dl.push(`<span class="d ${d.pinkey>0?"plus":"minus"}">👑 ${d.pinkey>0?"+":""}${d.pinkey}</span>`);
+  if (d.puma)   dl.push(`<span class="d ${d.puma>0?"plus":"minus"}">🧶 ${d.puma>0?"+":""}${d.puma}</span>`);
+  if (d.slipper)dl.push(`<span class="d minus">🧦 ${SLIPPER[S.slipper]}</span>`);
+
+  const dead = S.pinkey<=0 || S.puma<=0;
+  stage.innerHTML = `
+  <div class="card">
+    <div class="pic ${o.type}">
+      <span class="emo">${im.emo}</span>
+      ${im.src ? `<img src="${im.src}" alt="" style="object-position:${im.pos||"center"}" onerror="this.remove()">` : ""}
+      <div class="caption">${esc(im.caption||"")}</div>
+    </div>
+    <div class="verdict ${o.type}">${verdictTxt}</div>
+    <div class="deltas">${dl.join("")}</div>
+    ${whim ? `<div class="whim">🎲 <b>Willkür-Faktor:</b> ${whim} (👑 −2)</div>` : ""}
+    <div class="report">
+      <h3>Minion-Report</h3>
+      <div class="row"><small>Was du dachtest</small>${esc(o.thought)}</div>
+      <div class="row"><small>Was die Katze denkt</small>${esc(o.cat)}</div>
+      <div class="row fact"><small>Katzen-Fakt</small>${esc(o.fact)}</div>
+    </div>
+    <button class="btn" onclick="${dead ? "gameOver()" : (S.i<LEVELS.length-1 ? "next()" : "finish()")}">${dead ? "Oh nein." : (S.i<LEVELS.length-1 ? "Weiter im Dienst" : "Den Tag beenden")}</button>
+  </div>`;
+  top();
+}
+
+function next(){ S.i++; level(); }
+
+function logList(){
+  const ic = {win:"🐾",ok:"🚪",fail:"😾"};
+  return `<ul class="log">${S.log.map(l=>`<li><span>${l.title}</span><span>${ic[l.type]}</span></li>`).join("")}</ul>`;
+}
+
+function gameOver(){
+  const who = S.pinkey<=0 ? "pinkey" : "puma";
+  const im = who==="pinkey" ? IMAGES.blick : IMAGES.pantoffel;
+  stage.innerHTML = `
+  <div class="card">
+    <div class="pic fail"><span class="emo">${im.emo}</span><img src="${im.src}" alt="" style="object-position:${im.pos||"center"}" onerror="this.remove()"></div>
+    <div class="verdict fail">GEKÜNDIGT.</div>
+    <p class="situation">${who==="pinkey"
+      ? "Pinkey hat dich offiziell enterbt. Sie wird dich weiterhin dulden – als Dosenöffner. Mehr nicht."
+      : "Pumas Sicherheitssystem ist zusammengebrochen. Deine Hausschuhe haben es nicht geschafft."}</p>
+    ${logList()}
+    <button class="btn" onclick="start()">Neue Bewerbung einreichen</button>
+    <button class="btn ghost" onclick="intro()">Zum Start</button>
+  </div>`;
+  top();
+}
+
+function finish(){
+  const avg = (S.pinkey+S.puma)/2 - S.slipper*8;
+  let title, text, img;
+  if (avg>=75){ title="Ober-Minion mit Pfotenprivileg"; img=IMAGES.pfote;
+    text="Beide Herrschaften sind zufrieden. Das wird nie wieder passieren. Genieß es."; }
+  else if (avg>=45){ title="Minion auf Bewährung"; img=IMAGES.blick;
+    text="Du darfst bleiben. Vorerst. Pinkey führt Buch, Puma vergibt – meistens."; }
+  else { title="Enterbt, aber gefüttert ist gefüttert"; img=IMAGES.pantoffel;
+    text="Du lebst noch. Deine Würde nicht. Die Hausschuhe gehen morgen in die Wäsche."; }
+  stage.innerHTML = `
+  <div class="card">
+    <div class="pic ${avg>=75?"win":avg>=45?"ok":"fail"}"><span class="emo">${img.emo}</span><img src="${img.src}" alt="" style="object-position:${img.pos||"center"}" onerror="this.remove()"></div>
+    <div class="verdict ${avg>=75?"win":avg>=45?"ok":"fail"}">${title}</div>
+    <p class="situation">${text}</p>
+    <div class="deltas">
+      <span class="d">👑 ${S.pinkey} %</span><span class="d">🧶 ${S.puma} %</span><span class="d">🧦 ${SLIPPER[S.slipper]}</span>
+    </div>
+    ${logList()}
+    <button class="btn" onclick="start()">Noch eine Schicht</button>
+    <button class="btn ghost" onclick="quizStart()">📚 Zur Minion-Prüfung</button>
+    <button class="btn ghost" onclick="intro()">Zum Start</button>
+  </div>`;
+  top();
+}
+
+intro();
+</script>
+</body>
+</html>
